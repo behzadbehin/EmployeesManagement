@@ -15,7 +15,7 @@ namespace EmployeesManagement.Web.Pages.Employees
 
         // private readonly IFileAppService _fileAppService;
         [BindProperty]
-        public SaveEmployeeDto SaveEmployeeDto { get; set; }
+        public UISaveEmployeeDto UISaveEmployeeDto { get; set; }
         
         private readonly IEmployeeAppService _employeeService;
         public bool Saved { get; set; } = false;
@@ -34,12 +34,12 @@ namespace EmployeesManagement.Web.Pages.Employees
         {
             using (var memoryStream = new MemoryStream())
             {
-                // await SaveEmployeeDto.File.CopyToAsync(memoryStream);
+                await UISaveEmployeeDto.File.CopyToAsync(memoryStream);
                 await _employeeService.CreateAsync(
                     new SaveEmployeeDto
                     {
-                    //    Content = memoryStream.ToArray(),
-                        Name = SaveEmployeeDto.Name,
+                        Name = UISaveEmployeeDto.Name,
+                        ProfilePicture = memoryStream.ToArray()
                       //  FileName = SaveEmployeeDto.FileName
                     }
                 );
@@ -57,16 +57,16 @@ namespace EmployeesManagement.Web.Pages.Employees
         }
     }
 
-    // public class SaveEmployeeDto
-    // {
-    //     [Required]
-    //     [Display(Name = "File")]
-    //     public IFormFile File { get; set; }
+    public class UISaveEmployeeDto
+    {
+        [Required]
+        [Display(Name = "File")]
+        public IFormFile File { get; set; }
 
-    //     [Required]
-    //     [Display(Name = "Filename")]
-    //     public string FileName { get; set; }
-    //     public string Name { get; set; }
-    // }
+        [Required]
+        [Display(Name = "Filename")]
+        public string FileName { get; set; }
+        public string Name { get; set; }
+    }
 }
 

@@ -1,31 +1,42 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using EmployeeManagement.FileSystems;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
 
 namespace EmployeesManagement.Employees
 {
-    public class EmployeeAppService : CrudAppService<Employee, SaveEmployeeDto, Guid>, IEmployeeAppService
+    public class EmployeeAppService : CrudAppService<Employee, SaveEmployeeDto, 
+    Guid>, IEmployeeAppService
     {
+        private readonly IFileSystemAppService _fileSystem;
         private readonly IRepository<Employee, Guid> _repository;
-        public EmployeeAppService(IRepository<Employee, Guid> repository) : base(repository)
+        public EmployeeAppService(IRepository<Employee, Guid> repository, IFileSystemAppService fileSystem) : base(repository)
         {
             _repository = repository;
+            _fileSystem = fileSystem;
         }
-
-        public Task DeleteAsync(SaveEmployeeDto id)
+        public override async Task<SaveEmployeeDto> CreateAsync(SaveEmployeeDto input)
         {
-            throw new NotImplementedException();
-        }
-
-        public Task<SaveEmployeeDto> GetAsync(SaveEmployeeDto id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<SaveEmployeeDto> UpdateAsync(SaveEmployeeDto id, SaveEmployeeDto input)
-        {
-            throw new NotImplementedException();
+            await _fileSystem.Upsert(
+                new SaveFilesInputDto
+                {
+                    Name = input.Name,
+                    Files = new List<FileDto>()
+                                {
+                                    new FileDto
+                                    {
+                                        Content = input.ProfilePicture,
+                                        Name = "profile picture",
+                                        Size = "1200",
+                                        Type = "jpg"
+                                    }
+                                }
+                }
+            )   ;
+            //return null;
+            return await base.CreateAsync(input);
         }
     }
 
