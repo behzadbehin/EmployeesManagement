@@ -14,24 +14,35 @@ namespace EmployeesManagement.Employees
     }
     public class FileObject
     {
+        public string FileTitle { get; set; }
+        public FileSubjects FileSubject { get; set; }
+        
         public string FileName { get; set; }
         public long FileSize { get; set; }
         public string FileExtension { get; set; }
         public byte[] FileContent { get; set; }
     }
+    public enum FileSubjects
+    {
+        Profile = 1,
+        Evidence = 2,
+        ProductImage = 4,
+        //add your new enum items here
+        other = 100
 
+    }
     public class EmployeeInput :  EntityDto<Guid>
     {
         public EmployeeInput()
         {
-            Evidences= new List<FileObject>();
+            Files= new List<FileObject>();
         }
         public string EmployeeName { get; set; }
-        public FileObject Profile { get; set; }
-        public List<FileObject> Evidences { get; set; }
+        //public FileObject Profile { get; set; }
+        public List<FileObject> Files { get; set; }
     }
 
-    public interface IEmployeeAppService : ICrudAppService<SaveEmployeeDto,Guid>
+    public interface IEmployeeAppService : ICrudAppService<EmployeeInput,Guid>
     {
         
     }

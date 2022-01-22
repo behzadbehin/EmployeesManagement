@@ -35,42 +35,71 @@ namespace EmployeesManagement.Web.Pages.Employees
         {
             using (var memoryStream = new MemoryStream())
             {
-                #region manageFiles
-                    var profileName= UISaveEmployeeDto.ProfilePic.FileName;
-                    var profileExtension =Path.GetExtension(profileName);
-                    await UISaveEmployeeDto.ProfilePic.CopyToAsync(memoryStream);
+                #region manage Files
+                
                     //////////////////////
                 #endregion
-                var sendobject = new EmployeeInput()
+                var employeeServiceInput = new EmployeeInput()
                 {
+                    //create main object here
                     EmployeeName = UISaveEmployeeDto.Name,
-                    Profile = new FileObject
+
+                    // Profile = new FileObject
+                    // {
+                    //     FileName = UISaveEmployeeDto.ProfilePic.FileName,
+                    //     FileExtension = Path.GetExtension(UISaveEmployeeDto.ProfilePic.FileName),
+                    //     FileSize = (UISaveEmployeeDto.ProfilePic.Length)/1024, //convert from Byte to KB
+                    //     FileContent = memoryStream.ToArray()
+                    // }
+                };
+                #region  manage fiels
+                if(UISaveEmployeeDto.ProfilePic!=null)
+                {
+                    await UISaveEmployeeDto.ProfilePic.CopyToAsync(memoryStream);
+                    var newFileObject = new FileObject
                     {
                         FileName = UISaveEmployeeDto.ProfilePic.FileName,
                         FileExtension = Path.GetExtension(UISaveEmployeeDto.ProfilePic.FileName),
-                        FileSize = (UISaveEmployeeDto.ProfilePic.Length)/1024, //convert from Byte to KB
+                        FileSize = UISaveEmployeeDto.ProfilePic.Length / 1024, //convert from Byte to KB
+                        FileSubject = FileSubjects.Profile,
+                        FileTitle = "Employee Profile",
                         FileContent = memoryStream.ToArray()
-                    }
-                };
-                
+                    };
+                    employeeServiceInput.Files.Add(newFileObject);
+                }
 
-
-                await UISaveEmployeeDto.Evidence2.CopyToAsync(memoryStream);
-                await _employeeService.CreateAsync(
-                    new SaveEmployeeDto
+                if(UISaveEmployeeDto.Evidence1 != null)
+                {
+                    await UISaveEmployeeDto.Evidence1.CopyToAsync(memoryStream);
+                    var newFileObject = new FileObject
                     {
-                        Name = UISaveEmployeeDto.Name,
-                        ProfilePicture = memoryStream.ToArray()
-                      //  FileName = SaveEmployeeDto.FileName
-                    }
-                );
-                // await _fileAppService.SaveBlobAsync(
-                //     new SaveBlobInputDto
-                //     {
-                //         Name = UploadFileDto.Name,
-                //         Content = memoryStream.ToArray()
-                //     }
-                // );
+                        FileName = UISaveEmployeeDto.Evidence1.FileName,
+                        FileExtension = Path.GetExtension(UISaveEmployeeDto.Evidence1.FileName),
+                        FileSize = UISaveEmployeeDto.Evidence1.Length / 1024, //convert from Byte to KB
+                        FileSubject = FileSubjects.Evidence,
+                        FileTitle = "Employee Evidence1",
+                        FileContent = memoryStream.ToArray()
+                    };
+                    employeeServiceInput.Files.Add(newFileObject);
+                }
+
+                if(UISaveEmployeeDto.Evidence2 != null)
+                {
+                    await UISaveEmployeeDto.Evidence2.CopyToAsync(memoryStream);
+                    var newFileObject = new FileObject
+                    {
+                        FileName = UISaveEmployeeDto.Evidence2.FileName,
+                        FileExtension = Path.GetExtension(UISaveEmployeeDto.Evidence2.FileName),
+                        FileSize = UISaveEmployeeDto.Evidence2.Length / 1024, //convert from Byte to KB
+                        FileSubject = FileSubjects.Evidence,
+                        FileTitle = "Employee Evidence2",
+                        FileContent = memoryStream.ToArray()
+                    };
+                    employeeServiceInput.Files.Add(newFileObject);
+                }
+                #endregion
+
+                await _employeeService.CreateAsync(employeeServiceInput);
             }
             
 
