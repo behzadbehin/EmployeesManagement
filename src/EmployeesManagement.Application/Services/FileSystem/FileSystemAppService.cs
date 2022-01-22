@@ -48,12 +48,12 @@ namespace EmployeeManagement.FileSystems
 
         public async Task<SaveFilesInputDto> Upsert(SaveFilesInputDto input)
         {
-            var resultContainer = string.IsNullOrEmpty(input.Name) ? _blobContainerRepository.GetListAsync()
-                                                            .Result
-                                                            .FirstOrDefault(x => x.Name == input.Name)
-                                                            : null;
+            var resultContainer = string.IsNullOrEmpty(input.Name) ? null 
+                                                                :
+                                                             _blobContainerRepository.GetListAsync()
+                                                            .Result.FirstOrDefault(x => x.Name == input.Name);
 
-            if (resultContainer == null) //insert
+            if (resultContainer == null) //it is NOT specified  the main object like "Employee"
             {
                 var newGuid = Guid.NewGuid();
 
@@ -75,7 +75,7 @@ namespace EmployeeManagement.FileSystems
                 //blob.ExtraProperties = JsonSerializer.Serialize(input.Files[0]);
                 await _blobRepository.InsertManyAsync(dbl);
             }
-            else //update
+            else  //it is SPECIFied the main object like "Employee" ---- and it is not important if its update or delete
             {
                 var testblob = _blobRepository.GetListAsync().Result.Where(x => x.ContainerId == resultContainer.Id).ToList();
                 await _blobRepository.DeleteManyAsync(testblob.Select(x => x.Id).ToList());
