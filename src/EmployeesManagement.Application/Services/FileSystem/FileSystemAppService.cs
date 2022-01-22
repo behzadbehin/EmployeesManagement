@@ -6,13 +6,13 @@ using Volo.Abp.BlobStoring;
 using System.Linq;
 using Volo.Abp.Json;
 using Volo.Abp.Domain.Repositories;
+using System.Collections.Generic;
+using EmployeesManagement.Employees;
 
 namespace EmployeeManagement.FileSystems
 {
     public class FileSystemAppService : ApplicationService, IFileSystemAppService
     {
-         private IRepository<DatabaseBlob> BehzadRepository => LazyServiceProvider.LazyGetService<IRepository<DatabaseBlob>>();
-
         public IJsonSerializer JsonSerializer { get; }
         private IBlobContainer _blobContainer;
         private readonly IBlobContainerFactory _blobFactory;
@@ -48,24 +48,40 @@ namespace EmployeeManagement.FileSystems
 
         public async Task<SaveFilesInputDto> Upsert(SaveFilesInputDto input)
         {
-            var resultContainer = _blobContainerRepository.FindAsync(input.Name);
-            if (resultContainer.Result == null) //insert
+            var resultContainer = string.IsNullOrEmpty(input.Name) ? _blobContainerRepository.GetListAsync()
+                                                            .Result
+                                                            .FirstOrDefault(x => x.Name == input.Name)
+                                                            : null;
+
+            if (resultContainer == null) //insert
             {
-                var blobContainer = new DatabaseBlobContainer(Guid.NewGuid(), input.Name);
-                var blob = new DatabaseBlob(
-                    id: Guid.NewGuid(),
-                    containerId: blobContainer.Id,
-                    content: input.Files[0].FileContent,
-                    name: input.Files[0].FileName
-                );
-                //blob.ExtraProperties = JsonSerializer.Serialize(input.Files[0]);
+                var newGuid = Guid.NewGuid();
+
+                var blobContainer = new DatabaseBlobContainer(newGuid, newGuid.ToString());
                 var containerResult = await _blobContainerRepository.InsertAsync(blobContainer);
-                var blobResult = await _blobRepository.InsertAsync(blob);
+             //   var dbl = ObjectMapper.Map<List<FileObject>, List<DatabaseBlob>>(input.Files);
+                var dbl= new List<DatabaseBlob>();
+                foreach (var item in input.Files)
+                {
+                    var blob = new DatabaseBlob(
+                        id: Guid.NewGuid(),
+                        containerId: newGuid,
+                        content: item.FileContent,
+                        name: item.FileName
+                    );
+                    dbl.Add(blob);
+                }
+
+                //blob.ExtraProperties = JsonSerializer.Serialize(input.Files[0]);
+                await _blobRepository.InsertManyAsync(dbl);
             }
             else //update
             {
-                
-               // BehzadRepository.GetQueryableAsync().Result.Where(x=>x.ContainerId)
+                var testblob = _blobRepository.GetListAsync().Result.Where(x => x.ContainerId == resultContainer.Id).ToList();
+                await _blobRepository.DeleteManyAsync(testblob.Select(x => x.Id).ToList());
+                var dbl = ObjectMapper.Map<List<FileObject>, List<DatabaseBlob>>(input.Files);
+                await _blobRepository.InsertManyAsync(dbl);
+
             }
             return null;
         }

@@ -15,6 +15,10 @@ namespace EmployeeManagement.FileSystems
 
     public class SaveFilesInputDto : EntityDto<Guid>
     {
+        public SaveFilesInputDto()
+        {
+            Files = new List<FileObject>();
+        }
         public string Name { get; set; }
         // public List<FileDto> Files { get; set; }
         public List<FileObject> Files { get; set; }

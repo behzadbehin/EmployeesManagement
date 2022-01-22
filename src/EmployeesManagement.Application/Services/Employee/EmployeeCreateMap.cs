@@ -12,6 +12,8 @@ namespace EmployeesManagement.Employees
         {
             CreateMap<Employee, SaveEmployeeDto>();
             CreateMap<SaveEmployeeDto, Employee>();
+            CreateMap<Employee, EmployeeInput>();
+            CreateMap<EmployeeInput, Employee>();
         }
     }
 

@@ -20,24 +20,10 @@ namespace EmployeesManagement.Employees
         public override async Task<EmployeeInput> CreateAsync(EmployeeInput input)
         {
 
-            // await _fileSystem.Upsert(
-            //     new SaveFilesInputDto
-            //     {
-            //         Name = input.Name,
-            //         Files = new List<FileDto>()
-            //                     {
-            //                         new FileDto
-            //                         {
-            //                             Content = input.ProfilePicture,
-            //                             Name = "profile picture",
-            //                             Size = "1200",
-            //                             Type = "jpg"
-            //                         }
-            //                     }
-            //     }
-            // );
-            //return null;
             var employee = await base.CreateAsync(input);
+            if (employee == null)
+                return null;
+            
             var saveFileInput = new SaveFilesInputDto { Name = employee.Id.ToString() };
             if(input.Files!=null)
             {

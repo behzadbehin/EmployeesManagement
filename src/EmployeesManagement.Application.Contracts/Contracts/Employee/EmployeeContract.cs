@@ -37,7 +37,7 @@ namespace EmployeesManagement.Employees
         {
             Files= new List<FileObject>();
         }
-        public string EmployeeName { get; set; }
+        public string Name { get; set; }
         //public FileObject Profile { get; set; }
         public List<FileObject> Files { get; set; }
     }

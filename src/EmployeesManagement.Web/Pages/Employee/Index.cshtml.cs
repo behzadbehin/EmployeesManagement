@@ -17,7 +17,7 @@ namespace EmployeesManagement.Web.Pages.Employees
         // private readonly IFileAppService _fileAppService;
         [BindProperty]
         public UISaveEmployeeDto UISaveEmployeeDto { get; set; }
-        
+
         private readonly IEmployeeAppService _employeeService;
         public bool Saved { get; set; } = false;
 
@@ -33,27 +33,16 @@ namespace EmployeesManagement.Web.Pages.Employees
 
         public async Task<IActionResult> OnPostAsync()
         {
+            var employeeServiceInput = new EmployeeInput()
+            {
+                //create main object here
+                Name = UISaveEmployeeDto.Name,
+            };
             using (var memoryStream = new MemoryStream())
             {
-                #region manage Files
-                
-                    //////////////////////
-                #endregion
-                var employeeServiceInput = new EmployeeInput()
-                {
-                    //create main object here
-                    EmployeeName = UISaveEmployeeDto.Name,
 
-                    // Profile = new FileObject
-                    // {
-                    //     FileName = UISaveEmployeeDto.ProfilePic.FileName,
-                    //     FileExtension = Path.GetExtension(UISaveEmployeeDto.ProfilePic.FileName),
-                    //     FileSize = (UISaveEmployeeDto.ProfilePic.Length)/1024, //convert from Byte to KB
-                    //     FileContent = memoryStream.ToArray()
-                    // }
-                };
                 #region  manage fiels
-                if(UISaveEmployeeDto.ProfilePic!=null)
+                if (UISaveEmployeeDto.ProfilePic != null)
                 {
                     await UISaveEmployeeDto.ProfilePic.CopyToAsync(memoryStream);
                     var newFileObject = new FileObject
@@ -68,7 +57,7 @@ namespace EmployeesManagement.Web.Pages.Employees
                     employeeServiceInput.Files.Add(newFileObject);
                 }
 
-                if(UISaveEmployeeDto.Evidence1 != null)
+                if (UISaveEmployeeDto.Evidence1 != null)
                 {
                     await UISaveEmployeeDto.Evidence1.CopyToAsync(memoryStream);
                     var newFileObject = new FileObject
@@ -83,7 +72,7 @@ namespace EmployeesManagement.Web.Pages.Employees
                     employeeServiceInput.Files.Add(newFileObject);
                 }
 
-                if(UISaveEmployeeDto.Evidence2 != null)
+                if (UISaveEmployeeDto.Evidence2 != null)
                 {
                     await UISaveEmployeeDto.Evidence2.CopyToAsync(memoryStream);
                     var newFileObject = new FileObject
@@ -99,19 +88,25 @@ namespace EmployeesManagement.Web.Pages.Employees
                 }
                 #endregion
 
-                await _employeeService.CreateAsync(employeeServiceInput);
-            }
-            
 
+            }
+            await _employeeService.CreateAsync(employeeServiceInput);
             return Page();
         }
+        public void OnPostDelete()
+        {
+            var test = "behzad";
+            var hadk = test;
+        }
+
     }
+
 
     public class UISaveEmployeeDto
     {
         [Required]
         [Display(Name = "File")]
-        
+
         public IFormFile ProfilePic { get; set; }
         public IFormFile Evidence1 { get; set; }
         public IFormFile Evidence2 { get; set; }
