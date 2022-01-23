@@ -12,7 +12,7 @@ namespace EmployeeManagement.FileSystems
     {
         Task<DatabaseBlobContainer> Upsert(SaveFilesInputDto saveFilesInputDto);
         void DeleteFilesAsync(string containerName);
-        Task<List<DatabaseBlob>> GetFilesAsync(string containerName);
+        List<DatabaseBlob> GetFilesAsync(string containerName);
     }
 
     public class SaveFilesInputDto : EntityDto<Guid>

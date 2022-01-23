@@ -127,18 +127,13 @@ namespace EmployeeManagement.FileSystems
             }
         }
 
-        public Task<List<DatabaseBlob>> GetFilesAsync(string containerName)
+        public List<DatabaseBlob> GetFilesAsync(string containerName)
         {
-            throw new NotImplementedException();
+            return _blobRepository .GetListAsync() .Result
+                        .Where(x => x.ContainerId == BlobContainer.Id)
+                        .ToList();
+                   
         }
 
-        // public Task<List<DatabaseBlob>> GetFilesAsync(string containerName)
-        // {
-
-        //     return _blobRepository .GetListAsync() .Result
-        //                 .Where(x => x.ContainerId == BlobContainer.Id)
-        //                 .ToList();
-
-        // }
     }
 }
