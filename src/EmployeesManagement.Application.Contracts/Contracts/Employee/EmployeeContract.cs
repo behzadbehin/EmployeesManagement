@@ -21,6 +21,7 @@ namespace EmployeesManagement.Employees
         public long FileSize { get; set; }
         public string FileExtension { get; set; }
         public byte[] FileContent { get; set; }
+        public Guid ContainerId { get; set; }
     }
     public enum FileSubjects
     {

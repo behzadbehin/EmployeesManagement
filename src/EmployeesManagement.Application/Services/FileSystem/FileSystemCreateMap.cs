@@ -16,8 +16,7 @@ namespace EmployeesManagement.FileSystems
             CreateMap<FileObject, DatabaseBlob>()
             .ForMember(d=>d.Content, opt=>opt.MapFrom(s=>s.FileContent))
             .ForMember(d=>d.Name, opt=>opt.MapFrom(s=>s.FileName))
-            // .ForMember(d=>d.ExtraProperties, opt=>opt.MapFrom(s=>s.FileName))
-            // .ForMember(d=>d.ContainerId, opt=>opt.MapFrom(s=>s.FileName))
+            .ForMember(d=>d.ContainerId, opt=>opt.MapFrom(s=>s.ContainerId))
             ;
         }
     }

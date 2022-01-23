@@ -10,7 +10,7 @@ namespace EmployeeManagement.FileSystems
 {
     public interface IFileSystemAppService : IApplicationService
     {
-        Task<SaveFilesInputDto> Upsert(SaveFilesInputDto saveFilesInputDto);
+        Task<DatabaseBlobContainer> Upsert(SaveFilesInputDto saveFilesInputDto);
     }
 
     public class SaveFilesInputDto : EntityDto<Guid>
@@ -23,11 +23,12 @@ namespace EmployeeManagement.FileSystems
         // public List<FileDto> Files { get; set; }
         public List<FileObject> Files { get; set; }
     }
-    public class FileDto : EntityDto<Guid> //instead blob
-    {
-        public string Name { get; set; }
-        public byte[] Content{get; set;}
-        public string Type{get; set;}
-        public string Size { get; set; }
-    }
+
+    // public class FileDto : EntityDto<Guid> //instead blob
+    // {
+    //     public string Name { get; set; }
+    //     public byte[] Content{get; set;}
+    //     public string Type{get; set;}
+    //     public string Size { get; set; }
+    // }
 }

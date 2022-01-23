@@ -1,89 +1,112 @@
 using System;
-using System.Threading.Tasks;
-using Volo.Abp.Application.Services;
-using Volo.Abp.BlobStoring.Database;
-using Volo.Abp.BlobStoring;
-using System.Linq;
-using Volo.Abp.Json;
-using Volo.Abp.Domain.Repositories;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using EmployeesManagement.Employees;
+using Volo.Abp.Application.Services;
+using Volo.Abp.BlobStoring;
+using Volo.Abp.BlobStoring.Database;
+using Volo.Abp.Domain.Repositories;
+using Volo.Abp.Json;
 
 namespace EmployeeManagement.FileSystems
 {
-    public class FileSystemAppService : ApplicationService, IFileSystemAppService
+    public class
+    FileSystemAppService
+    : ApplicationService, IFileSystemAppService
     {
+        public DatabaseBlobContainer BlobContainer{get; set;}
         public IJsonSerializer JsonSerializer { get; }
-        private IBlobContainer _blobContainer;
-        private readonly IBlobContainerFactory _blobFactory;
-
         private readonly IDatabaseBlobContainerRepository _blobContainerRepository;
+
         private readonly IDatabaseBlobRepository _blobRepository;
-        public FileSystemAppService(IBlobContainer blobContainer, IBlobContainerFactory blobFactory,
-        IDatabaseBlobRepository blobRepository, IDatabaseBlobContainerRepository blobContainerRepository
-        , IJsonSerializer jsonSerializer)
+
+        public FileSystemAppService(
+            IDatabaseBlobRepository blobRepository,
+            IDatabaseBlobContainerRepository blobContainerRepository,
+            IJsonSerializer jsonSerializer
+        )
         {
-            _blobFactory = blobFactory;
-            _blobContainer = blobContainer;
             _blobContainerRepository = blobContainerRepository;
             _blobRepository = blobRepository;
             JsonSerializer = jsonSerializer;
         }
 
-        public async Task<SaveFilesInputDto> InsertUpdate(SaveFilesInputDto saveFilesInputDto)
+        public async Task<DatabaseBlobContainer> Upsert(SaveFilesInputDto input)
         {
+            if (!input.Files.Any()) return null;
 
-            _blobContainer = _blobFactory.Create(saveFilesInputDto.Name);
-            foreach (var item in saveFilesInputDto.Files)
+            bool isNew = true;
+
+            var containerName = "";
+
+            //the main object or entity does not exist but the files are going to be saved with new guid
+            if (String.IsNullOrEmpty(input.Name))
             {
-                //    await _blobContainer.SaveAsync(
+                //insert => container Name = new Guid
+                containerName = Guid.NewGuid().ToString();
+            } //the Name has value and it must be the entity id
+            else
+            {
+                //get from database container
+                BlobContainer = _blobContainerRepository .GetListAsync() .Result .FirstOrDefault(x => x.Name == input.Name);
 
-                //     ); 
+                //if has value it must be updated
+                if (BlobContainer == null)
+                {
+                    // there is an entity but it has not any container yet it must be saved with the entity id
+                    containerName = input.Name;
+                    
+                }
+                else
+                {
+                    isNew = false;
+                }
             }
-            // await _blobContainer.SaveAsync(saveFilesInputDto.Files[0].Name,saveFilesInputDto.Files[0].Content,true);
 
-            //throw new NotImplementedException();
-            return null;
+            if (isNew)
+            {
+                //start inserting
+                //step 1: insert Container
+                BlobContainer = await _blobContainerRepository.InsertAsync(new DatabaseBlobContainer(Guid.NewGuid(), containerName));
+                if (BlobContainer != null)
+                {
+                    //step 2: set Conatainer Id and map file objects to blobs
+                    var blobs = MapFiles(fileObjects: input.Files, containerId: BlobContainer.Id);
+
+                    //step 3 : insert
+                    await _blobRepository.InsertManyAsync(blobs);
+
+                    return BlobContainer;
+                }
+                return null;
+            }
+            else
+            {
+                //update
+                //step 1: delete all old files because I can not recognize which files should be updated and which ones must be delete ...
+                var currentBlobs = _blobRepository .GetListAsync() .Result
+                        .Where(x => x.ContainerId == BlobContainer.Id)
+                        .ToList();
+                await _blobRepository.DeleteManyAsync(currentBlobs.Select(x => x.Id).ToList());
+                
+                //step 2: set Conatainer Id and map file objects to blobs
+                var blobs = MapFiles(fileObjects: input.Files, containerId: BlobContainer.Id);
+
+                //step 3 : insert
+                await _blobRepository.InsertManyAsync(blobs);
+            }
         }
 
-        public async Task<SaveFilesInputDto> Upsert(SaveFilesInputDto input)
+        public List<DatabaseBlob> MapFiles(List<FileObject> fileObjects, Guid containerId)
         {
-            var resultContainer = string.IsNullOrEmpty(input.Name) ? null 
-                                                                :
-                                                             _blobContainerRepository.GetListAsync()
-                                                            .Result.FirstOrDefault(x => x.Name == input.Name);
-
-            if (resultContainer == null) //it is NOT specified  the main object like "Employee"
+            fileObjects.Select(f =>
             {
-                var newGuid = Guid.NewGuid();
+                f.ContainerId = containerId;
+                return f;
+            }).ToList();
 
-                var blobContainer = new DatabaseBlobContainer(newGuid, newGuid.ToString());
-                var containerResult = await _blobContainerRepository.InsertAsync(blobContainer);
-             //   var dbl = ObjectMapper.Map<List<FileObject>, List<DatabaseBlob>>(input.Files);
-                var dbl= new List<DatabaseBlob>();
-                foreach (var item in input.Files)
-                {
-                    var blob = new DatabaseBlob(
-                        id: Guid.NewGuid(),
-                        containerId: newGuid,
-                        content: item.FileContent,
-                        name: item.FileName
-                    );
-                    dbl.Add(blob);
-                }
-
-                //blob.ExtraProperties = JsonSerializer.Serialize(input.Files[0]);
-                await _blobRepository.InsertManyAsync(dbl);
-            }
-            else  //it is SPECIFied the main object like "Employee" ---- and it is not important if its update or delete
-            {
-                var testblob = _blobRepository.GetListAsync().Result.Where(x => x.ContainerId == resultContainer.Id).ToList();
-                await _blobRepository.DeleteManyAsync(testblob.Select(x => x.Id).ToList());
-                var dbl = ObjectMapper.Map<List<FileObject>, List<DatabaseBlob>>(input.Files);
-                await _blobRepository.InsertManyAsync(dbl);
-
-            }
-            return null;
+            return ObjectMapper.Map<List<FileObject>, List<DatabaseBlob>>(fileObjects);
         }
     }
 }
