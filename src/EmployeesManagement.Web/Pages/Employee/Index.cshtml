@@ -22,9 +22,15 @@
                     <abp-input asp-for="UISaveEmployeeDto.Evidence2"></abp-input>
                     <input type="submit" class="btn btn-info" />
                 </form>
+
+                <form asp-page="Index" asp-page-handler="DeleteContainer" enctype="multipart/form-data">
+                    <h1>Delete Container</h1>
+                    <abp-input asp-for="UISaveEmployeeDto.Name"></abp-input>
+                    <input type="submit" class="btn btn-info" value="Delete Container"/>
+                </form>
                 
-                @* <form  asp-page="Index" asp-page-handler="Delete" enctype="multipart/form-data">
-                    <input type="submit" class="btn btn-info" value="2"/>
+                @* <form  asp-page="Index" asp-page-handler="SaveFile" enctype="multipart/form-data">
+                    <input type="submit" class="btn btn-info" value="Save files without employee"/>
                 </form> *@
             </abp-column>
 

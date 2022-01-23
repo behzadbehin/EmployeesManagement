@@ -61,6 +61,7 @@ namespace EmployeeManagement.FileSystems
                 else
                 {
                     isNew = false;
+                    containerName = input.Name;
                 }
             }
 
@@ -95,18 +96,49 @@ namespace EmployeeManagement.FileSystems
 
                 //step 3 : insert
                 await _blobRepository.InsertManyAsync(blobs);
+                return BlobContainer;
             }
         }
 
         public List<DatabaseBlob> MapFiles(List<FileObject> fileObjects, Guid containerId)
         {
-            fileObjects.Select(f =>
-            {
-                f.ContainerId = containerId;
-                return f;
-            }).ToList();
+            
+            // the DatabaseBlob must be create witn constructor so i can not create it witn mapping
+            var blobs = fileObjects.Select(f=> new DatabaseBlob(
+                id: Guid.NewGuid(),
+                containerId: containerId,
+                name: f.FileName,
+                content: f.FileContent
+                )
+            ).ToList();
+            return blobs;
 
-            return ObjectMapper.Map<List<FileObject>, List<DatabaseBlob>>(fileObjects);
         }
+
+        public async void DeleteFilesAsync(string containerName)
+        {
+            if(string.IsNullOrEmpty(containerName))
+             return;
+            var currentContainer = _blobContainerRepository.GetListAsync().Result.FirstOrDefault(x=>x.Name.ToLower()==containerName.ToLower());
+            
+            if(currentContainer != null)
+            {
+                 await _blobContainerRepository.DeleteAsync(currentContainer.Id);
+            }
+        }
+
+        public Task<List<DatabaseBlob>> GetFilesAsync(string containerName)
+        {
+            throw new NotImplementedException();
+        }
+
+        // public Task<List<DatabaseBlob>> GetFilesAsync(string containerName)
+        // {
+
+        //     return _blobRepository .GetListAsync() .Result
+        //                 .Where(x => x.ContainerId == BlobContainer.Id)
+        //                 .ToList();
+
+        // }
     }
 }

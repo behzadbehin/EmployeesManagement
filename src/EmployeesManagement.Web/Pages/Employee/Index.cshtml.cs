@@ -2,6 +2,7 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Threading.Tasks;
+using EmployeeManagement.FileSystems;
 using EmployeesManagement.Employees;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -19,11 +20,13 @@ namespace EmployeesManagement.Web.Pages.Employees
         public UISaveEmployeeDto UISaveEmployeeDto { get; set; }
 
         private readonly IEmployeeAppService _employeeService;
+        private readonly IFileSystemAppService _fileService;
         public bool Saved { get; set; } = false;
 
-        public Index(IEmployeeAppService employeeAppService)
+        public Index(IEmployeeAppService employeeAppService,  IFileSystemAppService fileService)
         {
             _employeeService = employeeAppService;
+            _fileService = fileService;
         }
 
         public void OnGet()
@@ -33,11 +36,15 @@ namespace EmployeesManagement.Web.Pages.Employees
 
         public async Task<IActionResult> OnPostAsync()
         {
-            var employeeServiceInput = new EmployeeInput()
+            
+            var employeeServiceInput =  String.IsNullOrEmpty(UISaveEmployeeDto.Name) ?
+            new EmployeeInput() :
+            new EmployeeInput()
             {
                 //create main object here
                 Name = UISaveEmployeeDto.Name,
             };
+
             using (var memoryStream = new MemoryStream())
             {
 
@@ -90,13 +97,15 @@ namespace EmployeesManagement.Web.Pages.Employees
 
 
             }
-            await _employeeService.CreateAsync(employeeServiceInput);
+            var blobContainer = await _employeeService.CreatingAsync(employeeServiceInput);
             return Page();
         }
-        public void OnPostDelete()
+        public async Task<IActionResult> OnPostDeleteContainer()
         {
-            var test = "behzad";
-            var hadk = test;
+            if(String.IsNullOrEmpty(UISaveEmployeeDto.Name)) return Page();
+            _fileService.DeleteFilesAsync(UISaveEmployeeDto.Name);
+
+            return Page();
         }
 
     }
@@ -104,21 +113,18 @@ namespace EmployeesManagement.Web.Pages.Employees
 
     public class UISaveEmployeeDto
     {
-        [Required]
+       // [Required]
         [Display(Name = "File")]
 
         public IFormFile ProfilePic { get; set; }
         public IFormFile Evidence1 { get; set; }
         public IFormFile Evidence2 { get; set; }
 
-        [Required]
+       // [Required]
         [Display(Name = "Filename")]
         public string FileName { get; set; }
         public string Name { get; set; }
     }
-    public class MyClass
-    {
-
-    }
+    
 }
 

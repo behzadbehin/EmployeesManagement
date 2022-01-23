@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
-
+using Volo.Abp.BlobStoring.Database;
 
 namespace EmployeesManagement.Employees
 {
@@ -45,6 +46,6 @@ namespace EmployeesManagement.Employees
 
     public interface IEmployeeAppService : ICrudAppService<EmployeeInput,Guid>
     {
-        
+        Task<DatabaseBlobContainer> CreatingAsync(EmployeeInput input);
     }
 }

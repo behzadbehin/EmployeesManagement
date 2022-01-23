@@ -11,6 +11,8 @@ namespace EmployeeManagement.FileSystems
     public interface IFileSystemAppService : IApplicationService
     {
         Task<DatabaseBlobContainer> Upsert(SaveFilesInputDto saveFilesInputDto);
+        void DeleteFilesAsync(string containerName);
+        Task<List<DatabaseBlob>> GetFilesAsync(string containerName);
     }
 
     public class SaveFilesInputDto : EntityDto<Guid>
@@ -20,15 +22,8 @@ namespace EmployeeManagement.FileSystems
             Files = new List<FileObject>();
         }
         public string Name { get; set; }
-        // public List<FileDto> Files { get; set; }
         public List<FileObject> Files { get; set; }
     }
 
-    // public class FileDto : EntityDto<Guid> //instead blob
-    // {
-    //     public string Name { get; set; }
-    //     public byte[] Content{get; set;}
-    //     public string Type{get; set;}
-    //     public string Size { get; set; }
-    // }
+   
 }

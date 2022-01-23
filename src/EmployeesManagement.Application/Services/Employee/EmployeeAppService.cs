@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using EmployeeManagement.FileSystems;
 using Volo.Abp.Application.Services;
+using Volo.Abp.BlobStoring.Database;
 using Volo.Abp.Domain.Repositories;
 
 namespace EmployeesManagement.Employees
@@ -19,7 +20,7 @@ namespace EmployeesManagement.Employees
         }
         public override async Task<EmployeeInput> CreateAsync(EmployeeInput input)
         {
-
+            
             var employee = await base.CreateAsync(input);
             if (employee == null)
                 return null;
@@ -34,5 +35,27 @@ namespace EmployeesManagement.Employees
 
             return employee;
         }
+
+        public async Task<DatabaseBlobContainer> CreatingAsync(EmployeeInput input)
+        {
+            var saveFileInput = new SaveFilesInputDto();
+            if(!String.IsNullOrEmpty(input.Name))
+            {
+                var employee = await base.CreateAsync(input);
+                if (employee == null)
+                    return null;
+                saveFileInput = new SaveFilesInputDto { Name = employee.Id.ToString() };
+            }
+            
+            if(input.Files!=null)
+            {
+                saveFileInput.Files.AddRange(input.Files);
+            }
+
+            var blobContainer = await _fileSystem.Upsert(saveFileInput);
+
+            return blobContainer;
+        }
+
     }
 }
